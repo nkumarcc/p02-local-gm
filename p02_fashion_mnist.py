@@ -100,9 +100,10 @@ def prepareDatasetAndLogging(args):
         train_dataset = DatasetClass(
             dataset_dir, train=True, download=True,
             transform=transforms.Compose([
-                transforms.RandomCrop(size=(28, 28)),
                 transforms.RandomHorizontalFlip(),
-                transforms.RandomVerticalFlip(),
+                transforms.RandomRotation(degrees=15),
+                transforms.Pad(2),
+                transforms.RandomCrop((28,28)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.1307,), (0.3081,))
             ]))
@@ -398,7 +399,6 @@ def train(model, optimizer, train_loader, tensorboard_writer, callbacklist, epoc
     # display the last batch of images in tensorboard
     img = torchvision.utils.make_grid(255 - data.data, normalize=True, scale_each=True)
     tensorboard_writer.add_image('images', img, global_step=total_minibatch_count)
-
     return total_minibatch_count
 
 
@@ -460,7 +460,7 @@ def run_experiment(args):
                        callbacklist, epoch, total_minibatch_count)
     callbacklist.on_train_end()
     tensorboard_writer.close()
-
+    torch.save(model, 'last_model.pt')
     if args.dataset == 'fashion_mnist' and val_acc > 0.92 and val_acc <= 1.0:
         print("Congratulations, you beat the Question 13 minimum of 92 with ({:.2f}%) validation accuracy!".format(
             val_acc))
