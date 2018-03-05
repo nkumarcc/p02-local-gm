@@ -23,13 +23,17 @@ import callbacks
 # Training settings
 parser = argparse.ArgumentParser(description='Deep Learning JHU Assignment 1 - Fashion-MNIST')
 parser.add_argument('--batch-size', type=int, default=256, metavar='B',
-                    help='input batch size for training (default: 64)')
+                    help='input batch size for training (default: 256)')
 parser.add_argument('--test-batch-size', type=int, default=1000, metavar='TB',
                     help='input batch size for testing (default: 1000)')
 parser.add_argument('--epochs', type=int, default=10, metavar='E',
                     help='number of epochs to train (default: 10)')
 parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
                     help='learning rate (default: 0.01)')
+
+parser.add_argument('--dropout', type=float, default=0.5, metavar='DP',
+                    help='dropout (default: 0.5)')
+
 parser.add_argument('--optimizer', type=str, default='sgd', metavar='O',
                     help='Optimizer options are sgd, p1sgd, adam, rms_prop')
 parser.add_argument('--momentum', type=float, default=0.5, metavar='MO',
@@ -65,6 +69,7 @@ def timeStamped(fname, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
     # http://stackoverflow.com/a/5215012/99379
     return datetime.datetime.now().strftime(fmt).format(fname=fname)
 
+
 # choose the dataset
 
 
@@ -84,19 +89,31 @@ def prepareDatasetAndLogging(args):
     # Create the dataset, mnist or fasion_mnist
     dataset_dir = os.path.join(args.data_dir, args.dataset)
     training_run_dir = os.path.join(args.data_dir, training_run_name)
-    train_dataset = DatasetClass(
-        dataset_dir, train=True, download=True,
-        transform=transforms.Compose([
+    if args.model != "PQ13UltimateNet":
+        train_dataset = DatasetClass(
+            dataset_dir, train=True, download=True,
+            transform=transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,))
+            ]))
+    else:
+        train_dataset = DatasetClass(
+            dataset_dir, train=True, download=True,
+            transform=transforms.Compose([
+                transforms.RandomCrop(size=(28, 28)),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,))
+            ]))
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=args.batch_size, shuffle=True, **kwargs)
+
+    test_dataset = DatasetClass(
+        dataset_dir, train=False, transform=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))
         ]))
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=True, **kwargs)
-    test_dataset = DatasetClass(
-        dataset_dir, train=False, transform=transforms.Compose([
-                        transforms.ToTensor(),
-                        transforms.Normalize((0.1307,), (0.3081,))
-                    ]))
     test_loader = torch.utils.data.DataLoader(
         test_dataset, batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
@@ -136,12 +153,13 @@ def prepareDatasetAndLogging(args):
 
 
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, dropout_rate):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
         self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
         self.fc1 = nn.Linear(320, 50)
         self.fc2 = nn.Linear(50, 10)
+        self.dropout_rate = dropout_rate
 
     def forward(self, x):
         # F is just a functional wrapper for modules from the nn package
@@ -150,7 +168,7 @@ class Net(nn.Module):
         x = F.relu(F.max_pool2d(self.conv2(x), 2))
         x = x.view(-1, 320)
         x = F.relu(self.fc1(x))
-        x = F.dropout(x, training=self.training)
+        x = F.dropout(x, p=self.dropout_rate, training=self.training)
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
@@ -158,97 +176,153 @@ class Net(nn.Module):
 class P2Q7HalfChannelsNet(nn.Module):
     def __init__(self):
         super(P2Q7HalfChannelsNet, self).__init__()
-        # TODO Implement me
-        raise NotImplementedError
+        self.conv1 = nn.Conv2d(1, 5, kernel_size=5)
+        self.conv2 = nn.Conv2d(5, 10, kernel_size=5)
+        self.fc1 = nn.Linear(160, 50)
+        self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
-        # TODO Implement me
-        raise NotImplementedError
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))
+        x = x.view(-1, 160)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
 
 
 class P2Q7DoubleChannelsNet(nn.Module):
     def __init__(self):
         super(P2Q7DoubleChannelsNet, self).__init__()
-        # TODO Implement me
-        raise NotImplementedError
+        self.conv1 = nn.Conv2d(1, 20, kernel_size=5)
+        self.conv2 = nn.Conv2d(20, 40, kernel_size=5)
+        self.fc1 = nn.Linear(640, 50)
+        self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
-        # TODO Implement me
-        raise NotImplementedError
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))
+        x = x.view(-1, 640)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
 
 
 class P2Q8BatchNormNet(nn.Module):
     def __init__(self):
         super(P2Q8BatchNormNet, self).__init__()
-        # TODO Implement me
-        raise NotImplementedError
+        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+        self.batchnorm1 = nn.BatchNorm2d(10)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.fc1 = nn.Linear(320, 50)
+        self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
-        # TODO Implement me
-        raise NotImplementedError
+        x = self.batchnorm1(F.relu(F.max_pool2d(self.conv1(x), 2)))
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))
+        x = x.view(-1, 320)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
 
 
 class P2Q9DropoutNet(nn.Module):
     def __init__(self):
         super(P2Q9DropoutNet, self).__init__()
-        # TODO Implement me
-        raise NotImplementedError
+        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+        self.batchnorm1 = nn.BatchNorm2d(10)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.fc1 = nn.Linear(320, 50)
+        self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
-        # TODO Implement me
-        raise NotImplementedError
+        x = self.batchnorm1(F.relu(F.max_pool2d(self.conv1(x), 2)))
+        x = F.dropout(x)
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))
+        x = x.view(-1, 320)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
 
 
 class P2Q10DropoutBatchnormNet(nn.Module):
     def __init__(self):
         super(P2Q10DropoutBatchnormNet, self).__init__()
-        # TODO Implement me
-        raise NotImplementedError
+        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+        self.batchnorm1 = nn.BatchNorm2d(10)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.fc1 = nn.Linear(320, 50)
+        self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
-        # TODO Implement me
-        raise NotImplementedError
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        x = self.batchnorm1(F.dropout(x))
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))
+        x = x.view(-1, 320)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
 
 
 class P2Q11ExtraConvNet(nn.Module):
     def __init__(self):
         super(P2Q11ExtraConvNet, self).__init__()
-        # TODO Implement me
-        raise NotImplementedError
+        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+        self.batchnorm1 = nn.BatchNorm2d(10)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.conv3 = nn.Conv2d(20, 40, kernel_size=3)
+
+        self.fc1 = nn.Linear(40, 50)
+        self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
-        # TODO Implement me
-        raise NotImplementedError
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        x = self.batchnorm1(F.dropout(x))
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))
+        x = F.relu(F.max_pool2d(self.conv3(x), 2))
 
-
-class P2Q12RemoveLayerNet(nn.Module):
-    def __init__(self):
-        super(P2Q12RemoveLayerNet, self).__init__()
-        # TODO Implement me
-        raise NotImplementedError
-
-    def forward(self, x):
-        # TODO Implement me
-        raise NotImplementedError
-
+        x = x.view(-1, 40)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, training=self.training)
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
 
 class P2Q13UltimateNet(nn.Module):
     def __init__(self):
         super(P2Q13UltimateNet, self).__init__()
-        # TODO Implement me
-        raise NotImplementedError
+        self.module_1 = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_features=32),
+            nn.Dropout(0.3),
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_features=32),
+            nn.Dropout(0.4)
+        )
+        self.module_2 = nn.Sequential(
+            nn.Linear(in_features=5408, out_features=128),
+            nn.ReLU(),
+            nn.Linear(in_features=128, out_features=10),
+            nn.LogSoftmax(dim=1)
+        )
 
     def forward(self, x):
-        # TODO Implement me
-        raise NotImplementedError
+        return self.module_2(self.module_1(x).view(-1,5408))
 
 
 def chooseModel(model_name='default', cuda=True):
     # TODO add all the other models here if their parameter is specified
     if model_name == 'default' or model_name == 'P2Q7DefaultChannelsNet':
-        model = Net()
+        model = Net(args.dropout)
+    # elif model_name == "P2Q7HalfChannelsNet":
+    #     model = P2Q7HalfChannelsNet()
     elif model_name in globals():
-        model = globals()[model_name]
+        model = globals()[model_name]()
     else:
         raise ValueError('Unknown model type: ' + model_name)
 
@@ -316,7 +390,8 @@ def train(model, optimizer, train_loader, tensorboard_writer, callbacklist, epoc
             for name, param in model.named_parameters():
                 name = name.replace('.', '/')
                 tensorboard_writer.add_histogram(name, param.data.cpu().numpy(), global_step=total_minibatch_count)
-                tensorboard_writer.add_histogram(name + '/gradient', param.grad.data.cpu().numpy(), global_step=total_minibatch_count)
+                tensorboard_writer.add_histogram(name + '/gradient', param.grad.data.cpu().numpy(),
+                                                 global_step=total_minibatch_count)
 
         total_minibatch_count += 1
 
@@ -387,10 +462,11 @@ def run_experiment(args):
     tensorboard_writer.close()
 
     if args.dataset == 'fashion_mnist' and val_acc > 0.92 and val_acc <= 1.0:
-        print("Congratulations, you beat the Question 13 minimum of 92 with ({:.2f}%) validation accuracy!".format(val_acc))
+        print("Congratulations, you beat the Question 13 minimum of 92 with ({:.2f}%) validation accuracy!".format(
+            val_acc))
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
     # Run the primary training and validation loop
     run_experiment(args)
-
