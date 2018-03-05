@@ -2,6 +2,95 @@
 
 ## Names
 
+1. **Praateek Mahajan**
+    - pmahaja2@jhu.edu
+2. **Nitin Kumar**
+    -nkumar14@jhu.edu
+3. **Anant Bhargava**
+    -abharga7@jhu.edu
+
 # Answers
 
-TODO answer all questions
+### Varying Datasets (3 points)
+
+1. Compare the performance of mnist and fashion-mnist
+
+MNIST reaches 97.27i% accuracy whereas with the same settings Fashion MNIST reaches only 82.07%. This suggests that FMNIST is a more complex dataset than MNIST.
+
+### Varying Hyperparameters (3 points each)
+
+2. Train for twice as many epochs for both mnist and fashion_mnist.
+    - [Fashion 10 epochs, MNIST 10 epochs, Fashion 20 epochs, MNIST 20 epochs]
+    - How is this similar and different previous runs?
+
+We see that if we run for more epochs the accuracy of MNIST reaches to 98.32% (increase of 1%) and that of FMNIST reaches 85.37% (increase of 3%). The loss also continues to decrease.
+
+3. Change the SGD Learning Rate by a factor of
+    - [0.1x, 1x, 10x]
+
+We see with a learning rate of 0.1x the decrease in loss happens slowly, whereas for with a learning rate of 10x it happens faster than 1x. Learning rate of 10x seems to be a better learning rate our accuracy touhces 87% compared to 1x where it only reaches 81%. Thus 10x learning rate helps us with faster convergence.
+
+4. Compare Optimizers
+    - [SGD, Adam, Rmsprop]
+
+RMSProp and SGD perform similarly. Adam outperforms both the other optimizers, since it also keeps record of exponentially decaying gradients average of past gradients, apart from storing just the exponentialy decaying average of past squared gradients. Adam reaches an accuracy of 88% compared to 83% and 82% for RMSProp and SGD respectively.
+
+5. Set the dropout layer to a dropout rate of
+    - [0, 0.25, 0.5, 0.9, 1]
+
+As we can expect a dropout of 1 means that a layer is always disabled, thus with a dropout of 1 our network performs as bad as a random classifier, with no decrease in loss.
+We expect similar performance from a dropout rate of 0.9 where it will take much more epochs to learn anything substantial.
+We observe that among 0.25 and 0.5 of dropout 82% and 80% respectively. With more epochs we can expect them to perform similarly. 
+
+Also with higher dropout rates we observe similar accuracy on train and validation both, confirming that we are not overfitting.
+
+6. Change the batch size by a factor of:
+     - [1/8x, 1x, 8x]
+
+With a batch size of 8x we observe that our loss decreases sub-linearly, this indicates that our weight updates with respect to our gradients are much more informed compared to batch size of 1x or 1/8x, where the decrease is gradual. However with a batch size of 1/8x it means we are performing 8 times more updates to our weights, which leads to a faster convergence as our accuracy achieved is 88%. Whereas for a batch size of 1x and 1/8x our accuracies are 82% and 72% respectively. Running the latter batch sizes for longer epochs might lead to similar performance.
+
+7. Change the number of output channels in each convolution and the first Linear layer.
+    - [0.5x, 1x, 2x]
+    - Note: The input values of each layer will need to match the previous layer.
+    - You'll need to implement `P2Q7HalfChannelsNet` and `P2Q7DoubleChannelsNet`.
+
+Here we have similar performance when our channels are 1x and 2x, with a performance of 82.05% and 82.92% accuracy. However with half as many channels are model gives 79% accuracy and this can be attributed to the fact, that not enough information is being extracted from our input layers.
+
+8. Add a Batch Normalization Layer after the first convolution.
+
+
+
+9. Add a Dropout layer immediately after the Batch Normalization from the previous question.
+
+10. Move the Batch Normalizaton layer just below the Dropout layer from the previous question.
+    - Compare 9 with 10 and explain what happened.
+    - You may want to do a quick search of the current literature for this one.
+
+11. Add one extra Conv2D layer
+
+12. Remove a layer of your choice
+    - In addition to the standard questions, what did you choose and why?
+
+
+### Become the ultimate Fashion-MNIST model (25 points)
+
+13. Create the best model you can on Fashion-MNIST based on your experience from the previous questions.
+    - A minimum of 92% validation accuracy is required for full credit.
+    - Make sure to save your best model checkpoints or you'll be out of luck.
+    - Feel free to use outside literature
+    - Please write your own code
+    - Also answer the following questions
+        1. What does each change do mathematically?
+        2. What does each change do algorithmically?
+        3. How and why does the loss, accuracy, validation loss, and validation accuracy change?
+        4. How and why does the training time change? (if at all)
+        5. Explain why you would want to apply such a change to your model.
+    - The best performer in the class will get a prize!
+
+### Fine tuning between datasets (3 points each)
+
+14. Evaluate your "ultimate Fashion-MNIST model" by loading the trained weights and running on MNIST without changing the Fashion-MNIST weights at all.
+
+15. Reduce your SGD learning rate by 20x, and train MNIST on your ultimate Fashion-MNIST model
+     - Compare this to your original MNIST training run and the previous question
+
