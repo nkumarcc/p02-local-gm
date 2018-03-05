@@ -15,6 +15,10 @@
 
 1. Compare the performance of mnist and fashion-mnist
 
+![Question 1 Tensorboard Plot](./imgaes/q1_blue_fmnist.md)
+- **Blue is fMNIST**
+- **Orange is MNIST**
+
 MNIST reaches 97.27i% accuracy whereas with the same settings Fashion MNIST reaches only 82.07%. This suggests that FMNIST is a more complex dataset than MNIST.
 
 ### Varying Hyperparameters (3 points each)
@@ -23,20 +27,41 @@ MNIST reaches 97.27i% accuracy whereas with the same settings Fashion MNIST reac
     - [Fashion 10 epochs, MNIST 10 epochs, Fashion 20 epochs, MNIST 20 epochs]
     - How is this similar and different previous runs?
 
+![Question 2 Tensorboard Plot](./imgaes/q2_blue_fmnist.md)
+- **Blue is fMNIST**
+- **Orange is MNIST**
+
 We see that if we run for more epochs the accuracy of MNIST reaches to 98.32% (increase of 1%) and that of FMNIST reaches 85.37% (increase of 3%). The loss also continues to decrease.
 
 3. Change the SGD Learning Rate by a factor of
     - [0.1x, 1x, 10x]
+
+![Question 3 Tensorboard Plot](./imgaes/q3_pink_1_green_01_gray_001.png)
+- **Pink is LR 10x**
+- **Green is LR 1x**
+- **Gray is LR 0.1x**
 
 We see with a learning rate of 0.1x the decrease in loss happens slowly, whereas for with a learning rate of 10x it happens faster than 1x. Learning rate of 10x seems to be a better learning rate our accuracy touhces 87% compared to 1x where it only reaches 81%. Thus 10x learning rate helps us with faster convergence.
 
 4. Compare Optimizers
     - [SGD, Adam, Rmsprop]
 
+![Question 4 Tensorboard Plot](./imgaes/q4_orange_sgd_blue_adam.png)
+- **Blue is Adam**
+- **Orange is SGD**
+- **Red is Rmsprop**
+
 RMSProp and SGD perform similarly. Adam outperforms both the other optimizers, since it also keeps record of exponentially decaying gradients average of past gradients, apart from storing just the exponentialy decaying average of past squared gradients. Adam reaches an accuracy of 88% compared to 83% and 82% for RMSProp and SGD respectively.
 
 5. Set the dropout layer to a dropout rate of
     - [0, 0.25, 0.5, 0.9, 1]
+
+![Question 5 Tensorboard Plot](./imgaes/q5_blue_0_25_pink_50_green_90_gray_100.png)
+- **Blue is 0**
+- **Blue is 0.25 (Tensorboard set both to the same color)**
+- **Pink is 0.5**
+- **Green is 0.9**
+- **Gray is 1**
 
 As we can expect a dropout of 1 means that a layer is always disabled, thus with a dropout of 1 our network performs as bad as a random classifier, with no decrease in loss.
 We expect similar performance from a dropout rate of 0.9 where it will take much more epochs to learn anything substantial.
