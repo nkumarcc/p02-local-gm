@@ -15,7 +15,7 @@
 
 1. Compare the performance of mnist and fashion-mnist
 
-![Question 1 Tensorboard Plot](./imgaes/q1_blue_fmnist.md)
+![Question 1 Tensorboard Plot](./imgaes/q1_blue_fmnist.png)
 - **Blue is fMNIST**
 - **Orange is MNIST**
 
