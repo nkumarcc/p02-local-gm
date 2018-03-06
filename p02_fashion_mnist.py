@@ -365,12 +365,11 @@ class P2Q13UltimateNet(nn.Module):
         )
 
     def forward(self, x):
-        a = self.module_1(x)
-        b = self.module_2(a)
-        c = self.module_3(b)
-        d = self.module_4(c)
-        e = self.module_5(d.view(-1, 588))
-        return e
+        x = self.module_1(x)
+        x = self.module_2(x)
+        x = self.module_3(x)
+        x = self.module_4(x)
+        return self.module_5(x.view(-1, 588))
 
 # DEPRECEATED
 # class P2Q13UltimateNet(nn.Module):
