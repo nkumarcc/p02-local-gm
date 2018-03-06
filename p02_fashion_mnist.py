@@ -56,6 +56,7 @@ parser.add_argument('--model', type=str, default='default', metavar='M',
                     help="""Options are default, P2Q7DefaultChannelsNet,
                     P2Q7HalfChannelsNet, P2Q7DoubleChannelsNet,
                     P2Q8BatchNormNet, P2Q9DropoutNet, P2Q10DropoutBatchnormNet,
+        self.dropout_rate = dropout_rate
                     P2Q11ExtraConvNet, P2Q12RemoveLayerNet, and P2Q13UltimateNet.""")
 parser.add_argument('--print_log', action='store_true', default=False,
                     help='prints the csv log when training is complete')
@@ -272,24 +273,40 @@ class P2Q11ExtraConvNet(nn.Module):
     def __init__(self):
         super(P2Q11ExtraConvNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.batchnorm1 = nn.BatchNorm2d(10)
         self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-        self.conv3 = nn.Conv2d(20, 40, kernel_size=3)
-
-        self.fc1 = nn.Linear(40, 50)
+        self.conv3 = nn.Conv2d(20, 30, kernel_size=3)
+        self.fc1 = nn.Linear(120, 50)
         self.fc2 = nn.Linear(50, 10)
 
     def forward(self, x):
+        # F is just a functional wrapper for modules from the nn package
+        # see http://pytorch.org/docs/_modules/torch/nn/functional.html
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = self.batchnorm1(F.dropout(x))
         x = F.relu(F.max_pool2d(self.conv2(x), 2))
-        x = F.relu(F.max_pool2d(self.conv3(x), 2))
-
-        x = x.view(-1, 40)
+        x = F.relu(self.conv3(x))
+        x = x.view(-1, 120)
         x = F.relu(self.fc1(x))
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
+
+
+class P2Q12RemoveLayerNet(nn.Module):
+    def __init__(self):
+        super(P2Q12RemoveLayerNet, self).__init__()
+        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.fc1 = nn.Linear(320, 10)
+
+    def forward(self, x):
+        x = F.relu(F.max_pool2d(self.conv1(x), 2))
+        x = F.relu(F.max_pool2d(self.conv2(x), 2))
+        x = x.view(-1, 320)
+        x = F.dropout(x, training=self.training)
+        x = F.relu(self.fc1(x))
+        return F.log_softmax(x, dim=1)
+
+
 
 class P2Q13UltimateNet(nn.Module):
     def __init__(self):

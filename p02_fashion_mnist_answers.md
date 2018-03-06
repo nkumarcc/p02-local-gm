@@ -105,10 +105,15 @@ Here we have similar performance when our channels are 1x and 2x, with a perform
 
 11. Add one extra Conv2D layer
 
+We added the extra Conv2D layer after our second convolution layer, thus expanding from 20 to 30 channels. We didn't use max pool. This deteriorated our performance with default settings. This is not abnormal, since we have a more complex model, and the number of epochs is the same as the less complex model. However we observe that loss is continuously decreasing, therefore training on more epochs would definitely help our case. 
+
 12. Remove a layer of your choice
     - In addition to the standard questions, what did you choose and why?
 
+We removed the FC2 from the model. Since we are dealing with images, removing a convolution would result in losing the shift invariance. Secondly, removing a fully connected layer also reduces the number of parameters significantly. So now our FC1 is of dimension **320 x 10**. 
 
+This resulted in similar performance (84% on valdidation) and also the model was much faster to train. 
+ 
 ### Become the ultimate Fashion-MNIST model (25 points)
 
 13. Create the best model you can on Fashion-MNIST based on your experience from the previous questions.
