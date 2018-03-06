@@ -72,6 +72,11 @@ Also with higher dropout rates we observe similar accuracy on train and validati
 6. Change the batch size by a factor of:
      - [1/8x, 1x, 8x]
 
+![Question 6 Tensorboard Plot](./images/q6_grey_32_orange_256.png)
+- **Grey is 1/8x Batch Size**
+- **Orange is the default Batch Size**
+- **Blue is 8x**
+
 With a batch size of 8x we observe that our loss decreases sub-linearly, this indicates that our weight updates with respect to our gradients are much more informed compared to batch size of 1x or 1/8x, where the decrease is gradual. However with a batch size of 1/8x it means we are performing 8 times more updates to our weights, which leads to a faster convergence as our accuracy achieved is 88%. Whereas for a batch size of 1x and 1/8x our accuracies are 82% and 72% respectively. Running the latter batch sizes for longer epochs might lead to similar performance.
 
 7. Change the number of output channels in each convolution and the first Linear layer.
@@ -79,11 +84,18 @@ With a batch size of 8x we observe that our loss decreases sub-linearly, this in
     - Note: The input values of each layer will need to match the previous layer.
     - You'll need to implement `P2Q7HalfChannelsNet` and `P2Q7DoubleChannelsNet`.
 
+![Question 7 Tensorboard Plot](./images/q7_blue_half_pink_def_green_double.png)
+- **Blue is half the channels**
+- **Pink is default the channels**
+- **Green is double the channels**
+
+
 Here we have similar performance when our channels are 1x and 2x, with a performance of 82.05% and 82.92% accuracy. However with half as many channels are model gives 79% accuracy and this can be attributed to the fact, that not enough information is being extracted from our input layers.
 
 8. Add a Batch Normalization Layer after the first convolution.
 
-
+![Question 8 Tensorboard Plot](./images/q8.png)
+- **Red is after adding batchnormalization**
 
 9. Add a Dropout layer immediately after the Batch Normalization from the previous question.
 
