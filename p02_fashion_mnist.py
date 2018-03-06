@@ -473,6 +473,8 @@ def run_experiment(args):
     # Run the primary training loop, starting with validation accuracy of 0
     val_acc = 0
     callbacklist.on_train_begin()
+    if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience = 3, threshold = 1e-3)
     for epoch in range(1, epochs_to_run + 1):
         callbacklist.on_epoch_begin(epoch)
         # train for 1 epoch
@@ -485,6 +487,8 @@ def run_experiment(args):
         if args.save_ep:
             file_str = "EP_" + str(epoch) + args.model[:6] + '.pt'
             model.save_state_dict(file_str)
+        if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
+            scheduler.step(val_acc)
     callbacklist.on_train_end()
     tensorboard_writer.close()
     if args.dataset == 'fashion_mnist' and val_acc > 0.92 and val_acc <= 1.0:
