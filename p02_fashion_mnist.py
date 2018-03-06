@@ -308,13 +308,13 @@ class P2Q13UltimateNet(nn.Module):
             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
             nn.ReLU(),
             nn.BatchNorm2d(num_features=32),
-            nn.Dropout2d(0.3),
+            nn.Dropout(0.3),
 
             # Conv Layer 2
             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
             nn.ReLU(),
             nn.BatchNorm2d(num_features=32),
-            nn.Dropout2d(0.2)
+            nn.Dropout(0.4)
         )
 
         # Final layer
