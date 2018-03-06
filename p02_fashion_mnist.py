@@ -308,13 +308,13 @@ class P2Q13UltimateNet(nn.Module):
             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
             nn.ReLU(),
             nn.BatchNorm2d(num_features=32),
-            nn.Dropout(0.3),
+            nn.Dropout2d(0.3),
 
             # Conv Layer 2
             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
             nn.ReLU(),
             nn.BatchNorm2d(num_features=32),
-            nn.Dropout(0.4)
+            nn.Dropout2d(0.2)
         )
 
         # Final layer
@@ -476,8 +476,8 @@ def run_experiment(args):
     # Run the primary training loop, starting with validation accuracy of 0
     val_acc = 0
     callbacklist.on_train_begin()
-    if args.model == "PQ13UltimateNet" and optimizer == 'sgd':
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=3, threshold=1e-3)
+    if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience = 3, threshold = 1e-3)
     for epoch in range(1, epochs_to_run + 1):
         callbacklist.on_epoch_begin(epoch)
         # train for 1 epoch
@@ -490,7 +490,7 @@ def run_experiment(args):
         if args.save_ep:
             file_str = "EP_" + str(epoch) + args.model[:6] + '.pt'
             torch.save(model.state_dict(), file_str)
-        if args.model == "PQ13UltimateNet" and optimizer == 'sgd':
+        if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
             scheduler.step(val_acc)
     callbacklist.on_train_end()
     tensorboard_writer.close()
