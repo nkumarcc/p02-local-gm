@@ -16,7 +16,7 @@
 1. Compare the performance of mnist and fashion-mnist
 
 ![Hello World](http://clickrightng.com/wp-content/uploads/2017/06/hello-world.jpg)
-![Question 1 Tensorboard Plot](https://raw.githubusercontent.com/deep-learning-jhu/p02-fashion-mnist-garammasala/master/images/q1_blue_fmnist.png?token=AS7Nd4U21u1KCIrE6SI-yLTQpqBI5ZUUks5apwYqwA%3D%3D)
+![Question 1 Tensorboard Plot](/images/q1_blue_fmnist.png)
 - **Blue is fMNIST**
 - **Orange is MNIST**
 
