@@ -432,13 +432,15 @@ def test(model, test_loader, tensorboard_writer, callbacklist, epoch, total_mini
 
     test_size = np.array(len(test_loader.dataset), np.float32)
     test_loss /= test_size
-
     acc = np.array(correct, np.float32) / test_size
-    epoch_logs = {'val_loss': np.array(test_loss),
-                  'val_acc': np.array(acc)}
-    for name, value in six.iteritems(epoch_logs):
-        tensorboard_writer.add_scalar(name, value, global_step=total_minibatch_count)
-    callbacklist.on_epoch_end(epoch, epoch_logs)
+    if callbacklist:
+        epoch_logs = {'val_loss': np.array(test_loss),
+                      'val_acc': np.array(acc)}
+        for name, value in six.iteritems(epoch_logs):
+            tensorboard_writer.add_scalar(name, value, global_step=total_minibatch_count)
+        callbacklist.on_epoch_end(epoch, epoch_logs)
+    else:
+        print('Note: Not writing to tensorboard should occur only if --verify  flag is on')
     progress_bar.write(
         'Epoch: {} - validation test results - Average val_loss: {:.4f}, val_acc: {}/{} ({:.2f}%)'.format(
             epoch, test_loss, correct, len(test_loader.dataset),
@@ -465,16 +467,17 @@ def run_experiment(args):
         model.load_state_dict(torch.load(args.load))
     # If verification  is required get the first validation
     if args.verify:
-        val_acc = test(model, test_loader, tensorboard_writer,
-                       callbacklist, -1, total_minibatch_count)
+        test(model, test_loader, tensorboard_writer,
+             None, -1, 0)
+        return
 
     # tensorboard_writer.add_graph(model, images[:2])
     optimizer = chooseOptimizer(model, args.optimizer)
     # Run the primary training loop, starting with validation accuracy of 0
     val_acc = 0
     callbacklist.on_train_begin()
-    if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience = 3, threshold = 1e-3)
+    if args.model == "PQ13UltimateNet" and optimizer == 'sgd':
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=3, threshold=1e-3)
     for epoch in range(1, epochs_to_run + 1):
         callbacklist.on_epoch_begin(epoch)
         # train for 1 epoch
@@ -486,8 +489,8 @@ def run_experiment(args):
         # Saving every epoch if save_epoch is true
         if args.save_ep:
             file_str = "EP_" + str(epoch) + args.model[:6] + '.pt'
-            model.save_state_dict(file_str)
-        if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
+            torch.save(model.state_dict(), file_str)
+        if args.model == "PQ13UltimateNet" and optimizer == 'sgd':
             scheduler.step(val_acc)
     callbacklist.on_train_end()
     tensorboard_writer.close()
