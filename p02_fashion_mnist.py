@@ -289,6 +289,65 @@ class P2Q11ExtraConvNet(nn.Module):
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
+# DEPRECEATED
+# class P2Q13UltimateNet(nn.Module):
+#     def __init__(self):
+#         super(P2Q13UltimateNet, self).__init__()
+#         self.module_1 = nn.Sequential(
+#             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
+#             nn.ReLU(),
+#             nn.BatchNorm2d(num_features=32),
+#             nn.Dropout(0.3),
+#             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
+#             nn.ReLU(),
+#             nn.BatchNorm2d(num_features=32),
+#             nn.Dropout(0.4)
+#         )
+#         self.module_2 = nn.Sequential(
+#             nn.Linear(in_features=5408, out_features=128),
+#             nn.ReLU(),
+#             nn.Linear(in_features=128, out_features=10),
+#             nn.LogSoftmax(dim=1)
+#         )
+#
+#     def forward(self, x):
+#         return self.module_2(self.module_1(x).view(-1,5408))
+
+class one_block(nn.Module):
+    def __init__(self, k, first_channel):
+        super(one_block, self).__init__()
+        print(first_channel)
+        self.conv1 = nn.Conv2d(in_channels=first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
+        self.conv2 = nn.Conv2d(in_channels=k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
+        self.conv3 = nn.Conv2d(in_channels=2 * k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
+        self.conv4 = nn.Conv2d(in_channels=3 * k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
+        self.conv5 = nn.Conv2d(in_channels=4 * k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
+        self.conv6 = nn.Conv2d(in_channels=5 * k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
+
+    def forward(self, input_vec):
+        result1 = self.conv1(input_vec)
+        result2 = self.conv2(torch.cat((input_vec, result1), dim=1))
+        result3 = self.conv3(torch.cat((input_vec, result1, result2), dim=1))
+        result4 = self.conv4(torch.cat((input_vec, result1, result2, result3), dim=1))
+        result5 = self.conv5(torch.cat((input_vec, result1, result2, result3, result4), dim=1))
+        result6 = self.conv6(torch.cat((input_vec, result1, result2, result3, result4, result5), dim=1))
+
+        return result6
+
+
+class transition_block(nn.Module):
+    def __init__(self, input_ch, k):
+        super(transition_block, self).__init__()
+        self.module = nn.Sequential(
+            nn.BatchNorm2d(num_features=input_ch),
+            nn.ReLU(inplace=True),
+            nn.AvgPool2d(kernel_size=(2, 2)),
+            nn.Conv2d(in_channels=input_ch, out_channels=k, kernel_size=(1, 1))
+        )
+
+    def forward(self, input_vec):
+        return self.module(input_vec)
+
 
 
 class P2Q12RemoveLayerNet(nn.Module):
@@ -311,25 +370,48 @@ class P2Q12RemoveLayerNet(nn.Module):
 class P2Q13UltimateNet(nn.Module):
     def __init__(self):
         super(P2Q13UltimateNet, self).__init__()
-        self.module_1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
-            nn.ReLU(),
-            nn.BatchNorm2d(num_features=32),
-            nn.Dropout(0.3),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
-            nn.ReLU(),
-            nn.BatchNorm2d(num_features=32),
-            nn.Dropout(0.4)
-        )
-        self.module_2 = nn.Sequential(
-            nn.Linear(in_features=5408, out_features=128),
-            nn.ReLU(),
-            nn.Linear(in_features=128, out_features=10),
-            nn.LogSoftmax(dim=1)
+        self.module_1 = one_block(12, 1)
+        self.module_2 = transition_block(12, 12)
+        self.module_3 = one_block(12, 12)
+        self.module_4 = transition_block(12, 12)
+        self.module_5 = nn.Sequential(
+            nn.Linear(in_features=588, out_features=100),
+            nn.ReLU(inplace=True),
+            nn.Linear(in_features=100, out_features=10),
+            nn.LogSoftmax(dim=0)
         )
 
     def forward(self, x):
-        return self.module_2(self.module_1(x).view(-1,5408))
+        a = self.module_1(x)
+        b = self.module_2(a)
+        c = self.module_3(b)
+        d = self.module_4(c)
+        e = self.module_5(d.view(-1, 588))
+        return e
+
+# DEPRECEATED
+# class P2Q13UltimateNet(nn.Module):
+#     def __init__(self):
+#         super(P2Q13UltimateNet, self).__init__()
+#         self.module_1 = nn.Sequential(
+#             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
+#             nn.ReLU(),
+#             nn.BatchNorm2d(num_features=32),
+#             nn.Dropout(0.3),
+#             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
+#             nn.ReLU(),
+#             nn.BatchNorm2d(num_features=32),
+#             nn.Dropout(0.4)
+#         )
+#         self.module_2 = nn.Sequential(
+#             nn.Linear(in_features=5408, out_features=128),
+#             nn.ReLU(),
+#             nn.Linear(in_features=128, out_features=10),
+#             nn.LogSoftmax(dim=1)
+#         )
+#
+#     def forward(self, x):
+#         return self.module_2(self.module_1(x).view(-1, 5408))
 
 
 def chooseModel(model_name='default', cuda=True):
@@ -352,7 +434,7 @@ def chooseOptimizer(model, optimizer='sgd'):
     if optimizer == 'sgd':
         optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
     elif optimizer == 'adam':
-        optimizer = optim.Adam(model.parameters())
+        optimizer = optim.Adam(model.parameters(),lr=args.lr)
     elif optimizer == 'rmsprop':
         optimizer = optim.RMSprop(model.parameters())
     else:
