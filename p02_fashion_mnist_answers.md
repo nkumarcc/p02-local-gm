@@ -19,7 +19,7 @@
 - **Blue is fMNIST**
 - **Orange is MNIST**
 
-MNIST reaches 97.27i% accuracy whereas with the same settings Fashion MNIST reaches only 82.07%. This suggests that FMNIST is a more complex dataset than MNIST.
+MNIST reaches 97.27% accuracy whereas with the same settings Fashion MNIST reaches only 82.07%. This suggests that FMNIST is a more complex dataset than MNIST.
 
 ### Varying Hyperparameters (3 points each)
 
@@ -97,18 +97,31 @@ Here we have similar performance when our channels are 1x and 2x, with a perform
 ![Question 8 Tensorboard Plot](./images/q8.png)
 - **Red is after adding batchnormalization**
 
+Adding batchnormalization improved performance, by preventing overfitting (imposing regularisation).
+
 9. Add a Dropout layer immediately after the Batch Normalization from the previous question.
+
+Adding a dropout layer after batch norm reduced the performance. This could be attributed to slower learning due to dropout. However running for more epochs might help reducing overfitting.
 
 10. Move the Batch Normalizaton layer just below the Dropout layer from the previous question.
     - Compare 9 with 10 and explain what happened.
     - You may want to do a quick search of the current literature for this one.
 
+Swapping position of dropout layer hurt the performance. The paper by (Li. et al)[https://arxiv.org/abs/1801.05134] explains the effect of having dropout before BN. 
+
+From our understanding, we say that dropout shifts the variance of neural units when moving from train to test. Whereas BN maintains this statistical variance. This inconsistency of variance causes unstable behaviour in inference that leads to degraded performane. If we dropout some units before BN it would result in a different calculation of the mean and variance, whereas during test time we would have all units present. Hence it is safe to say that dropout after BN is preferred over dropout before BN.
+
 11. Add one extra Conv2D layer
+
+We added the extra Conv2D layer after our second convolution layer, thus expanding from 20 to 30 channels. We didn't use max pool. This deteriorated our performance with default settings. This is not abnormal, since we have a more complex model, and the number of epochs is the same as the less complex model. However we observe that loss is continuously decreasing, therefore training on more epochs would definitely help our case. 
 
 12. Remove a layer of your choice
     - In addition to the standard questions, what did you choose and why?
 
+We removed the FC2 from the model. Since we are dealing with images, removing a convolution would result in losing the shift invariance. Secondly, removing a fully connected layer also reduces the number of parameters significantly. So now our FC1 is of dimension **320 x 10**. 
 
+This resulted in similar performance (84% on valdidation) and also the model was much faster to train. 
+ 
 ### Become the ultimate Fashion-MNIST model (25 points)
 
 13. Create the best model you can on Fashion-MNIST based on your experience from the previous questions.
