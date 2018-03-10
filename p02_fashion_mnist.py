@@ -61,6 +61,12 @@ parser.add_argument('--model', type=str, default='default', metavar='M',
 parser.add_argument('--print_log', action='store_true', default=False,
                     help='prints the csv log when training is complete')
 
+parser.add_argument('--load', type=str, default=None,
+                    help="""Model to load""")
+parser.add_argument('--save_ep', action='store_true', default=False,
+                    help='Saves model each epoch')
+parser.add_argument('--verify', action='store_true', default=False,
+                    help='Whether only verification  of  the model on validation set  is required')
 required = object()
 
 
@@ -104,7 +110,8 @@ def prepareDatasetAndLogging(args):
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomRotation(degrees=15),
                 transforms.Pad(2),
-                transforms.RandomCrop((28,28)),
+                transforms.RandomCrop((28, 28)),
+                transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize((0.1307,), (0.3081,))
             ]))
@@ -229,6 +236,7 @@ class P2Q8BatchNormNet(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
+
 class P2Q9DropoutNet(nn.Module):
     def __init__(self):
         super(P2Q9DropoutNet, self).__init__()
@@ -240,7 +248,7 @@ class P2Q9DropoutNet(nn.Module):
 
     def forward(self, x):
         x = self.batchnorm1(F.relu(F.max_pool2d(self.conv1(x), 2)))
-        x = F.dropout2d(x, training = self.training)
+        x = F.dropout2d(x, training=self.training)
         x = F.relu(F.max_pool2d(self.conv2(x), 2))
         x = x.view(-1, 320)
         x = F.relu(self.fc1(x))
@@ -260,7 +268,7 @@ class P2Q10DropoutBatchnormNet(nn.Module):
 
     def forward(self, x):
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = self.batchnorm1(F.dropout2d(x, training = self.training))
+        x = self.batchnorm1(F.dropout2d(x, training=self.training))
         x = F.relu(F.max_pool2d(self.conv2(x), 2))
         x = x.view(-1, 320)
         x = F.relu(self.fc1(x))
@@ -289,128 +297,36 @@ class P2Q11ExtraConvNet(nn.Module):
         x = F.dropout(x, training=self.training)
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
-# DEPRECEATED
-# class P2Q13UltimateNet(nn.Module):
-#     def __init__(self):
-#         super(P2Q13UltimateNet, self).__init__()
-#         self.module_1 = nn.Sequential(
-#             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
-#             nn.ReLU(),
-#             nn.BatchNorm2d(num_features=32),
-#             nn.Dropout(0.3),
-#             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
-#             nn.ReLU(),
-#             nn.BatchNorm2d(num_features=32),
-#             nn.Dropout(0.4)
-#         )
-#         self.module_2 = nn.Sequential(
-#             nn.Linear(in_features=5408, out_features=128),
-#             nn.ReLU(),
-#             nn.Linear(in_features=128, out_features=10),
-#             nn.LogSoftmax(dim=1)
-#         )
-#
-#     def forward(self, x):
-#         return self.module_2(self.module_1(x).view(-1,5408))
-
-class one_block(nn.Module):
-    def __init__(self, k, first_channel):
-        super(one_block, self).__init__()
-        print(first_channel)
-        self.conv1 = nn.Conv2d(in_channels=first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
-        self.conv2 = nn.Conv2d(in_channels=k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
-        self.conv3 = nn.Conv2d(in_channels=2 * k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
-        self.conv4 = nn.Conv2d(in_channels=3 * k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
-        self.conv5 = nn.Conv2d(in_channels=4 * k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
-        self.conv6 = nn.Conv2d(in_channels=5 * k + first_channel, out_channels=k, kernel_size=(3, 3), padding=1)
-
-    def forward(self, input_vec):
-        result1 = self.conv1(input_vec)
-        result2 = self.conv2(torch.cat((input_vec, result1), dim=1))
-        result3 = self.conv3(torch.cat((input_vec, result1, result2), dim=1))
-        result4 = self.conv4(torch.cat((input_vec, result1, result2, result3), dim=1))
-        result5 = self.conv5(torch.cat((input_vec, result1, result2, result3, result4), dim=1))
-        result6 = self.conv6(torch.cat((input_vec, result1, result2, result3, result4, result5), dim=1))
-
-        return result6
-
-
-class transition_block(nn.Module):
-    def __init__(self, input_ch, k):
-        super(transition_block, self).__init__()
-        self.module = nn.Sequential(
-            nn.BatchNorm2d(num_features=input_ch),
-            nn.ReLU(inplace=True),
-            nn.AvgPool2d(kernel_size=(2, 2)),
-            nn.Conv2d(in_channels=input_ch, out_channels=k, kernel_size=(1, 1))
-        )
-
-    def forward(self, input_vec):
-        return self.module(input_vec)
-
-
-
-class P2Q12RemoveLayerNet(nn.Module):
-    def __init__(self):
-        super(P2Q12RemoveLayerNet, self).__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-        self.fc1 = nn.Linear(320, 10)
-
-    def forward(self, x):
-        x = F.relu(F.max_pool2d(self.conv1(x), 2))
-        x = F.relu(F.max_pool2d(self.conv2(x), 2))
-        x = x.view(-1, 320)
-        x = F.dropout(x, training=self.training)
-        x = F.relu(self.fc1(x))
-        return F.log_softmax(x, dim=1)
-
 
 
 class P2Q13UltimateNet(nn.Module):
     def __init__(self):
         super(P2Q13UltimateNet, self).__init__()
-        self.module_1 = one_block(12, 1)
-        self.module_2 = transition_block(12, 12)
-        self.module_3 = one_block(12, 12)
-        self.module_4 = transition_block(12, 12)
-        self.module_5 = nn.Sequential(
-            nn.Linear(in_features=588, out_features=100),
-            nn.ReLU(inplace=True),
-            nn.Linear(in_features=100, out_features=10),
-            nn.LogSoftmax(dim=0)
+        self.module_1 = nn.Sequential(
+
+            # Conv Layer 1
+            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_features=32),
+            nn.Dropout(0.3),
+
+            # Conv Layer 2
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_features=32),
+            nn.Dropout(0.4)
+        )
+
+        # Final layer
+        self.module_2 = nn.Sequential(
+            nn.Linear(in_features=5408, out_features=128),
+            nn.ReLU(),
+            nn.Linear(in_features=128, out_features=10),
+            nn.LogSoftmax(dim=1)
         )
 
     def forward(self, x):
-        x = self.module_1(x)
-        x = self.module_2(x)
-        x = self.module_3(x)
-        x = self.module_4(x)
-        return self.module_5(x.view(-1, 588))
-
-# DEPRECEATED
-# class P2Q13UltimateNet(nn.Module):
-#     def __init__(self):
-#         super(P2Q13UltimateNet, self).__init__()
-#         self.module_1 = nn.Sequential(
-#             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
-#             nn.ReLU(),
-#             nn.BatchNorm2d(num_features=32),
-#             nn.Dropout(0.3),
-#             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
-#             nn.ReLU(),
-#             nn.BatchNorm2d(num_features=32),
-#             nn.Dropout(0.4)
-#         )
-#         self.module_2 = nn.Sequential(
-#             nn.Linear(in_features=5408, out_features=128),
-#             nn.ReLU(),
-#             nn.Linear(in_features=128, out_features=10),
-#             nn.LogSoftmax(dim=1)
-#         )
-#
-#     def forward(self, x):
-#         return self.module_2(self.module_1(x).view(-1, 5408))
+        return self.module_2(self.module_1(x).view(-1, 5408))
 
 
 def chooseModel(model_name='default', cuda=True):
@@ -433,7 +349,7 @@ def chooseOptimizer(model, optimizer='sgd'):
     if optimizer == 'sgd':
         optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
     elif optimizer == 'adam':
-        optimizer = optim.Adam(model.parameters(),lr=args.lr)
+        optimizer = optim.Adam(model.parameters(), lr=args.lr)
     elif optimizer == 'rmsprop':
         optimizer = optim.RMSprop(model.parameters())
     else:
@@ -516,13 +432,15 @@ def test(model, test_loader, tensorboard_writer, callbacklist, epoch, total_mini
 
     test_size = np.array(len(test_loader.dataset), np.float32)
     test_loss /= test_size
-
     acc = np.array(correct, np.float32) / test_size
-    epoch_logs = {'val_loss': np.array(test_loss),
-                  'val_acc': np.array(acc)}
-    for name, value in six.iteritems(epoch_logs):
-        tensorboard_writer.add_scalar(name, value, global_step=total_minibatch_count)
-    callbacklist.on_epoch_end(epoch, epoch_logs)
+    if callbacklist:
+        epoch_logs = {'val_loss': np.array(test_loss),
+                      'val_acc': np.array(acc)}
+        for name, value in six.iteritems(epoch_logs):
+            tensorboard_writer.add_scalar(name, value, global_step=total_minibatch_count)
+        callbacklist.on_epoch_end(epoch, epoch_logs)
+    else:
+        print('Note: Not writing to tensorboard should occur only if --verify  flag is on')
     progress_bar.write(
         'Epoch: {} - validation test results - Average val_loss: {:.4f}, val_acc: {}/{} ({:.2f}%)'.format(
             epoch, test_loss, correct, len(test_loader.dataset),
@@ -542,6 +460,17 @@ def run_experiment(args):
     epochs_to_run = args.epochs
     tensorboard_writer, callbacklist, train_loader, test_loader = prepareDatasetAndLogging(args)
     model = chooseModel(args.model)
+
+    # Loading the parameters of the model
+    if args.load:
+        print('Loading the model')
+        model.load_state_dict(torch.load(args.load))
+    # If verification  is required get the first validation
+    if args.verify:
+        test(model, test_loader, tensorboard_writer,
+             None, -1, 0)
+        return
+
     # tensorboard_writer.add_graph(model, images[:2])
     optimizer = chooseOptimizer(model, args.optimizer)
     # Run the primary training loop, starting with validation accuracy of 0
@@ -557,11 +486,14 @@ def run_experiment(args):
         # validate progress on test dataset
         val_acc = test(model, test_loader, tensorboard_writer,
                        callbacklist, epoch, total_minibatch_count)
+        # Saving every epoch if save_epoch is true
+        if args.save_ep:
+            file_str = "EP_" + str(epoch) + args.model[:6] + '.pt'
+            torch.save(model.state_dict(), file_str)
         if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
             scheduler.step(val_acc)
     callbacklist.on_train_end()
     tensorboard_writer.close()
-    torch.save(model, 'last_model.pt')
     if args.dataset == 'fashion_mnist' and val_acc > 0.92 and val_acc <= 1.0:
         print("Congratulations, you beat the Question 13 minimum of 92 with ({:.2f}%) validation accuracy!".format(
             val_acc))
