@@ -142,12 +142,12 @@ We observed that batch normalization had improved performance from question 8. W
 
 Diagram of the CNN:
 
-![Screen Shot 2018-03-12 at 11.29.53 PM.png](../images/q13_arch.png)
+![Screen Shot 2018-03-12 at 11.29.53 PM.png](./images/q13_arch.png)
 
 Experimentation was done to change the number of channels and this particular configuration was  the first one where we crossed the 92% threshold.  Larger number  of output channels resulted in longer train times because  of more nunber  of parameters. 
 
 Discussion of accuracy, loss, val\_loss, val\_acc:
-![Screen Shot 2018-03-12 at 11.29.53 PM.png](../images/q13_tensor.png)
+![Screen Shot 2018-03-12 at 11.29.53 PM.png](./images/q13_tensor.png)
 Early stopping was done after 8 epochs, as the loss tapers off and the validation accuracy increases to 92%. 
 The train accruacy increases  and tapers off near 95%. The training loss also decreases and tapers off near 0.1. The validation loss increases after 1.75k, so model at this epoch was chosen and saved, as it would be the point where the generalization loss would be  the least. After this point the validation loss increases again to around 0.250. These graphs make sense as after certain training epochs the training accuracy tapers off and the training loss stabilizes. After a certain time the validation loss increases indicating overfitting. 
 
