@@ -147,4 +147,6 @@ After running trained weights that got a validation accuracy of over 92%, we rec
 15. Reduce your SGD learning rate by 20x, and train MNIST on your ultimate Fashion-MNIST model
      - Compare this to your original MNIST training run and the previous question
 
+![Question 15 Tensorboard Plot](./images/q15.png)
+
 We saw after 1 epoch we reached 91% validation accuracy and 98% after 10 epochs. We start with much higher accuracy likely because our model is significantly more robust to overfitting and faster at classifying a more complex model.
