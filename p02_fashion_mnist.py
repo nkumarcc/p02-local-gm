@@ -490,7 +490,8 @@ def run_experiment(args):
     # tensorboard_writer.add_graph(model, images[:2])
     optimizer = chooseOptimizer(model, args.optimizer)
     # Run the primary training loop, starting with validation accuracy of 0
-    val_acc = 0
+    best_acc = 0
+    best_model = model
     callbacklist.on_train_begin()
     if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience = 3, threshold = 1e-3)
