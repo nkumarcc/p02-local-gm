@@ -52,6 +52,11 @@ python p02_fashion_mnist.py --dataset fashion_mnist --model P2Q10DropoutBatchnor
 # Question 11 -- Extra Convolution
 python p02_fashion_mnist.py --dataset fashion_mnist --model P2Q11ExtraConvNet --name q11_extra --data_dir ../data/q11
 
+# Question 12 -- Remove Layer
+python p02_fashion_mnist.py --dataset fashion_mnist --model P2Q12RemoveLayerNet --name q12_extra_dp --data_dir ../data/q12
+
+# Question 13 -- UltimateNet
+python p02_fashion_mnist.py --dataset fashion_mnist --model P2Q13UltimateNet --name q13_ult_net --data_dir ../data/q13
 
 
 # ...and so on, hopefully you have the idea now.
