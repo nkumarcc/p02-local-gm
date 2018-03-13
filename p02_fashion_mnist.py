@@ -466,6 +466,7 @@ def test(model, test_loader, tensorboard_writer, callbacklist, epoch, total_mini
 
 
 def run_experiment(args):
+    best_acc = 0
     total_minibatch_count = 0
     args.cuda = not args.no_cuda and torch.cuda.is_available()
 
@@ -503,11 +504,14 @@ def run_experiment(args):
         val_acc = test(model, test_loader, tensorboard_writer,
                        callbacklist, epoch, total_minibatch_count)
         # Saving every epoch if save_epoch is true
-        if args.save_ep:
-            file_str = "EP_" + str(epoch) + args.model[:6] + '.pt'
-            torch.save(model.state_dict(), file_str)
+        if val_acc > best_acc and args.save_ep:
+            best_model = model
+            best_acc = val_acc
+
         if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
             scheduler.step(val_acc)
+    
+    torch.save(best_model.state_dict(), str(epoch) + "_" + str(val_acc) + ".pt")
     callbacklist.on_train_end()
     tensorboard_writer.close()
     if args.dataset == 'fashion_mnist' and val_acc > 0.92 and val_acc <= 1.0:
