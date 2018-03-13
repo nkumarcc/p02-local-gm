@@ -56,7 +56,6 @@ parser.add_argument('--model', type=str, default='default', metavar='M',
                     help="""Options are default, P2Q7DefaultChannelsNet,
                     P2Q7HalfChannelsNet, P2Q7DoubleChannelsNet,
                     P2Q8BatchNormNet, P2Q9DropoutNet, P2Q10DropoutBatchnormNet,
-        self.dropout_rate = dropout_rate
                     P2Q11ExtraConvNet, P2Q12RemoveLayerNet, and P2Q13UltimateNet.""")
 parser.add_argument('--print_log', action='store_true', default=False,
                     help='prints the csv log when training is complete')
