@@ -317,28 +317,31 @@ class P2Q12RemoveLayerNet(nn.Module):
 class P2Q13UltimateNet(nn.Module):
     def __init__(self):
         super(P2Q13UltimateNet, self).__init__()
+        self.module_1 = nn.Sequential(
 
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3)
-        self.bn1 = nn.BatchNorm2d(32)
-        self.conv2 = nn.Conv2d(32, 32, kernel_size=2, stride=2)
-        self.bn2 = nn.BatchNorm2d(32)
-        self.linear1 = nn.Linear(5408, 128)
-        self.linear2 = nn.Linear(128, 10)
+            # Conv Layer 1
+            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_features=32),
+            nn.Dropout(0.3),
+
+            # Conv Layer 2
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
+            nn.ReLU(),
+            nn.BatchNorm2d(num_features=32),
+            nn.Dropout(0.4)
+        )
+
+        # Final layer
+        self.module_2 = nn.Sequential(
+            nn.Linear(in_features=5408, out_features=128),
+            nn.ReLU(),
+            nn.Linear(in_features=128, out_features=10),
+            nn.LogSoftmax(dim=1)
+        )
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = F.relu(x)
-        x = self.bn1(x)
-        x = F.dropout2d(x, p=0.3, training=self.training)
-        x = self.conv2(x)
-        x = F.relu(x)
-        x = self.bn2(x)
-        x = F.dropout2d(x, p=0.4, training=self.training)
-        x = x.view(-1, 5408)
-        x = self.linear1(x)
-        x = F.relu(x)
-        x = self.linear2(x)
-        return F.log_softmax(x, dim=1)
+        return self.module_2(self.module_1(x).view(-1, 5408))
 
 
 def chooseModel(model_name='default', cuda=True):
