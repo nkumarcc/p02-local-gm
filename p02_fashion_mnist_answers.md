@@ -138,6 +138,22 @@ This resulted in similar performance (84% on valdidation) and also the model was
         5. Explain why you would want to apply such a change to your model.
     - The best performer in the class will get a prize!
 
+We observed that batch normalization had improved performance from question 8. We started off with using the structure from previous questions with two convolutional layered neural networks along with maxpooling in between, this resulted in about 86% accuracy. Max pooling is used to decrease the dimensionality but it loses information by only choosing the maximum in the area. Simplicity the all convolutional net by Springenberg et al.[https://arxiv.org/pdf/1412.6806.pdf] made us think about using convolutional layers with stride instead of normal maxpooling layers. So we used a very simple architecture with a single convolutional layer as before and then did another layer of convolution but with stride of 2 to reduce the dimensionality of the data to 128. This was then fed into another linear layer which converted into 10 dimensional vector. Log softmax was applied to the last layer. 
+
+Diagram of the CNN:
+
+![Screen Shot 2018-03-12 at 11.29.53 PM.png](../images/q13_arch.png)
+
+Experimentation was done to change the number of channels and this particular configuration was  the first one where we crossed the 92% threshold.  Larger number  of output channels resulted in longer train times because  of more nunber  of parameters. 
+
+Discussion of accuracy, loss, val\_loss, val\_acc:
+![Screen Shot 2018-03-12 at 11.29.53 PM.png](../images/q13_tensor.png)
+Early stopping was done after 8 epochs, as the loss tapers off and the validation accuracy increases to 92%. 
+The train accruacy increases  and tapers off near 95%. The training loss also decreases and tapers off near 0.1. The validation loss increases after 1.75k, so model at this epoch was chosen and saved, as it would be the point where the generalization loss would be  the least. After this point the validation loss increases again to around 0.250. These graphs make sense as after certain training epochs the training accuracy tapers off and the training loss stabilizes. After a certain time the validation loss increases indicating overfitting. 
+
+Training time changes with the number of layers,  and the number of parameters. We found that decreasing the number of parameters decreased the training time. 
+
+
 ### Fine tuning between datasets (3 points each)
 
 14. Evaluate your "ultimate Fashion-MNIST model" by loading the trained weights and running on MNIST without changing the Fashion-MNIST weights at all.
