@@ -56,7 +56,6 @@ parser.add_argument('--model', type=str, default='default', metavar='M',
                     help="""Options are default, P2Q7DefaultChannelsNet,
                     P2Q7HalfChannelsNet, P2Q7DoubleChannelsNet,
                     P2Q8BatchNormNet, P2Q9DropoutNet, P2Q10DropoutBatchnormNet,
-        self.dropout_rate = dropout_rate
                     P2Q11ExtraConvNet, P2Q12RemoveLayerNet, and P2Q13UltimateNet.""")
 parser.add_argument('--print_log', action='store_true', default=False,
                     help='prints the csv log when training is complete')
@@ -482,6 +481,7 @@ def run_experiment(args):
     optimizer = chooseOptimizer(model, args.optimizer)
     # Run the primary training loop, starting with validation accuracy of 0
     best_acc = 0
+    best_model = model
     callbacklist.on_train_begin()
     if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience = 3, threshold = 1e-3)
