@@ -20,7 +20,7 @@
 - **Blue is fMNIST**
 - **Orange is MNIST**
 
-MNIST reaches 97.27% accuracy whereas with the same settings Fashion MNIST reaches only 82.07%. This suggests that FMNIST is a more complex dataset than MNIST.
+MNIST reaches 97.27% validation accuracy whereas with the same settings Fashion MNIST reaches only 82.07%. This suggests that FMNIST is a more complex dataset than MNIST. Further confirming our point, the difference between training accuracies is close to the difference in validation accuracies (94.14% MNIST vs 79.69% fMNIST), which means the error is not coming from overfitting to the more complex dataset (not from variance), but our model's lack of flexibility for more complex data (from bias).
 
 ### Varying Hyperparameters (3 points each)
 
@@ -32,7 +32,7 @@ MNIST reaches 97.27% accuracy whereas with the same settings Fashion MNIST reach
 - **Blue is fMNIST**
 - **Orange is MNIST**
 
-We see that if we run for more epochs the accuracy of MNIST reaches to 98.32% (increase of 1%) and that of FMNIST reaches 85.37% (increase of 3%). The loss also continues to decrease.
+We see that if we run for more epochs the validation accuracy of MNIST reaches 98.32% (increase of 1%) and that of FMNIST reaches 85.37% (increase of 3%). The training accuracy of MNIST reaches 96.48% and of fMNIST reaches 83.59%, also showing increase. The loss also continues to decrease. This shows that our model hadn't converged yet (and might not have now) and that more training could help our model.
 
 3. Change the SGD Learning Rate by a factor of
     - [0.1x, 1x, 10x]
@@ -91,14 +91,14 @@ With a batch size of 8x we observe that our loss decreases sub-linearly, this in
 - **Green is double the channels**
 
 
-Here we have similar performance when our channels are 1x and 2x, with a performance of 82.05% and 82.92% accuracy. However with half as many channels are model gives 79% accuracy and this can be attributed to the fact, that not enough information is being extracted from our input layers.
+Here we have similar performance when our channels are 1x and 2x, with a performance of 82.05% and 82.92% accuracy. This indicates extracting more information from our linear layer will help us only marginally, although we may see this difference increase with more epochs. However with half as many channels our model gives 79% accuracy. This can be attributed to the fact that not enough information is being extracted from our input layers.
 
 8. Add a Batch Normalization Layer after the first convolution.
 
 ![Question 8 Tensorboard Plot](./images/q8.png)
 - **Red is after adding batchnormalization**
 
-Adding batchnormalization improved performance, by preventing overfitting (imposing regularisation).
+Adding batchnormalization improved performance, by preventing overfitting (imposing regularisation). We may see further effects with more epochs
 
 9. Add a Dropout layer immediately after the Batch Normalization from the previous question.
 
