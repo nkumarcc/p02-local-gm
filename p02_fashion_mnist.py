@@ -318,31 +318,21 @@ class P2Q12RemoveLayerNet(nn.Module):
 class P2Q13UltimateNet(nn.Module):
     def __init__(self):
         super(P2Q13UltimateNet, self).__init__()
-        self.module_1 = nn.Sequential(
 
-            # Conv Layer 1
-            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=(3, 3)),
-            nn.ReLU(),
-            nn.BatchNorm2d(num_features=32),
-            nn.Dropout(0.3),
-
-            # Conv Layer 2
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(2, 2), stride=2),
-            nn.ReLU(),
-            nn.BatchNorm2d(num_features=32),
-            nn.Dropout(0.4)
-        )
-
-        # Final layer
-        self.module_2 = nn.Sequential(
-            nn.Linear(in_features=5408, out_features=128),
-            nn.ReLU(),
-            nn.Linear(in_features=128, out_features=10),
-            nn.LogSoftmax(dim=1)
-        )
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3)
+        self.bn1 = nn.BatchNorm2d(32)
+        self.conv2 = nn.Conv2d(32, 32, kernel_size=2, stride=2)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.linear1 = nn.Linear(5408, 128)
+        self.linear2 = nn.Linear(128, 10)
 
     def forward(self, x):
-        return self.module_2(self.module_1(x).view(-1, 5408))
+        x = self.bn1(F.relu(self.conv1(x)))
+        x = self.bn2(F.relu(self.conv2(x)))
+        x = x.view(-1, 5408)
+        x = F.relu(self.linear1(x))
+        x = self.linear2(x)
+        return F.log_softmax(x, dim=1)
 
 
 def chooseModel(model_name='default', cuda=True):
@@ -491,7 +481,7 @@ def run_experiment(args):
     # tensorboard_writer.add_graph(model, images[:2])
     optimizer = chooseOptimizer(model, args.optimizer)
     # Run the primary training loop, starting with validation accuracy of 0
-    val_acc = 0
+    best_acc = 0
     callbacklist.on_train_begin()
     if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience = 3, threshold = 1e-3)
@@ -508,7 +498,7 @@ def run_experiment(args):
             best_model = model
             best_acc = val_acc
 
-        if args.model == "PQ13UltimateNet" and  optimizer == 'sgd':
+        if args.model == "PQ13UltimateNet" and optimizer == 'sgd':
             scheduler.step(val_acc)
     
     torch.save(best_model.state_dict(), str(epoch) + "_" + str(val_acc) + ".pt")
