@@ -326,8 +326,8 @@ class P2Q13UltimateNet(nn.Module):
         self.linear2 = nn.Linear(128, 10)
 
     def forward(self, x):
-        x = self.bn1(F.relu(self.conv1(x)))
-        x = self.bn2(F.relu(self.conv2(x)))
+        x = F.dropout(self.bn1(F.relu(self.conv1(x))), p=0.3, training=self.training)
+        x = F.dropout(self.bn2(F.relu(self.conv2(x))), p=0.4, training=self.training)
         x = x.view(-1, 5408)
         x = F.relu(self.linear1(x))
         x = self.linear2(x)
