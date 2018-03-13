@@ -5,9 +5,9 @@
 1. **Praateek Mahajan**
     - pmahaja2@jhu.edu
 2. **Nitin Kumar**
-    -nkumar14@jhu.edu
+    - nkumar14@jhu.edu
 3. **Anant Bhargava**
-    -abharga7@jhu.edu
+    - abharga7@jhu.edu
 
 
 # Answers
@@ -141,6 +141,8 @@ This resulted in similar performance (84% on valdidation) and also the model was
 ### Fine tuning between datasets (3 points each)
 
 14. Evaluate your "ultimate Fashion-MNIST model" by loading the trained weights and running on MNIST without changing the Fashion-MNIST weights at all.
+
+After running trained weights that got a validation accuracy of over 92%, we receive a validation accuracy of 9.86%. This makes sense as it is approximately 10%, approximately random chance. The weights have been trained on an entirely different dataset, and have no reason to cross over.
 
 15. Reduce your SGD learning rate by 20x, and train MNIST on your ultimate Fashion-MNIST model
      - Compare this to your original MNIST training run and the previous question
